@@ -1,5 +1,9 @@
 local err = 1.0E-10;
 
+local function isNaN(n)
+    return n ~= n;
+end
+
 local function solveLinear(a, b)
     return -b / a;
 end
@@ -11,7 +15,8 @@ local function solveQuadratic(a, b, c)
         return;
     else
         local u = u2 ^ 0.5;
-        return k - u, k + u;
+        local r1, r2 = k - u, k + u;
+        return r1, r2;
     end
 end
 
@@ -85,8 +90,7 @@ local function trajectory(origin, target, gravity, projectileSpeed)
     --projectileSpeed : number(sign = positive)
     local ox, oy, oz = origin.x, origin.y, origin.z;
     local tx, ty, tz = target.x, target.y, target.z;
-    local tv = (target - origin);
-    local tvx, tvy, tvz = tv.x, tv.y, tv.z;
+    local tvx, tvy, tvz = tx - ox, ty - oy, tz - oz;
     local h = tx - ox;
     local j = tz - oz;
     local k = ty - oy;
@@ -97,7 +101,7 @@ local function trajectory(origin, target, gravity, projectileSpeed)
     local c2 = tvy*tvy - 2*k*l - projectileSpeed*projectileSpeed + tvx*tvx + tvz*tvz;
     local c3 = 2*k*tvy + 2*h*tvx + 2*j*tvz;
     local c4 = k*k + h*h + j*j;
-    
+
     local t0, t1, t2, t3 = solveQuartic(c0, c1, c2, c3, c4);
     local d, e, f;
     if t0 and t0 >= 0 then
@@ -127,8 +131,6 @@ local function trajectory(origin, target, gravity, projectileSpeed)
 end
 
 
-
-
 return {
     polynomials = {
         linear = solveLinear,
@@ -137,6 +139,7 @@ return {
         quartic = solveQuartic
     },
     projectile = {
-        trajectory  = trajectory
+        trajectory  = trajectory,
+
     }
 };
