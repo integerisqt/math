@@ -1,14 +1,15 @@
 local err = 1.0E-10;
 
-local function isNaN(n)
-    return n ~= n;
-end
-
 local function solveLinear(a, b)
+    --solves x for ax + b = 0
     return -b / a;
 end
 
 local function solveQuadratic(a, b, c)
+    --solves x for ax^2 + bx + c = 0
+    if a > -err and a < err then
+        return solveLinear(b, c);
+    end
     local k = -b / (2 * a);
     local u2 = k * k - c / a;
     if u2 > -err and u2 < err then
@@ -21,6 +22,10 @@ local function solveQuadratic(a, b, c)
 end
 
 local function solveCubic(a, b, c, d)
+    --solves x for ax^3 + bx^2 + cx + d = 0
+    if a > -err and a < err then
+        return solveQuadratic(b, c, d);
+    end
     local k = -b / (3 * a);
 	local p = (3 * a * c - b * b) / (9 * a * a);
 	local q = (2 * b * b * b - 9 * a * b * c + 27 * a * a * d) / (54 * a * a * a);
@@ -48,6 +53,9 @@ local function solveCubic(a, b, c, d)
 end
 
 local function solveQuartic(a, b, c, d, e)
+    if a > -err and a < err then
+        return solveCubic(b, c, d, e);
+    end
     local k = -b / (4 * a);
 	local p = (8 * a * c - 3 * b * b) / (8 * a * a);
 	local q = (b * b * b + 8 * a * a * d - 4 * a * b * c) / (8 * a * a * a);
@@ -130,6 +138,21 @@ local function trajectory(origin, target, gravity, projectileSpeed)
     end
 end
 
+local dot = Vector3.new().Dot;
+
+local function timeHitWithoutGravity(origin, target, projectileSpeed)
+    local v = target - origin;
+    local c0 = dot(v, v) - projectileSpeed * projectileSpeed;
+    local c1 = 2 * dot(target, v);
+    local c2 = dot(target, target);
+    local t0, t1 = solveQuadratic(c0, c1, c2);
+    if t0 and t0 > 0 then
+        return t0;
+    end
+    if t1 and t1 > 0 then
+        return t1;
+    end
+end
 
 return {
     polynomials = {
@@ -140,6 +163,6 @@ return {
     },
     projectile = {
         trajectory  = trajectory,
-
+        timeHitWithoutGravity = timeHitWithoutGravity
     }
 };
